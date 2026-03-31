@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Smart No-Parking System - Chhatrapati Sambhajinagar Municipal Corporation</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css"/>
+  <style>
+    body { font-family: 'Inter', system-ui, sans-serif; }
+    .nav-active { border-bottom: 3px solid #B8860B; color: white !important; }
+    .card { transition: all 0.3s; }
+    .card:hover { transform: translateY(-6px); }
+    canvas { border-radius: 16px; }
+  </style>
+</head>
+<body class="bg-gray-100">
+
+  <!-- Top Navbar -->
+  <nav class="bg-[#0B2545] text-white sticky top-0 z-50 shadow-lg">
+    <div class="max-w-7xl mx-auto px-8 py-5 flex items-center justify-between">
+      <div class="flex items-center gap-4">
+        <div class="w-11 h-11 bg-amber-500 rounded-2xl flex items-center justify-center">
+          <i class="fa-solid fa-shield-halved text-3xl text-[#0B2545]"></i>
+        </div>
+        <div>
+          <div class="font-bold text-lg tracking-wider">CHHATRAPATI SAMBHAJINAGAR</div>
+          <div class="text-amber-400 text-xs tracking-widest">MUNICIPAL CORPORATION • SMART CITY PROJECT</div>
+        </div>
+      </div>
+
+      <div class="flex gap-8 text-sm font-medium">
+        <a href="#" onclick="switchPage(0)" class="nav-link nav-active hover:text-amber-400 flex items-center gap-2"><i class="fa-solid fa-house"></i> Dashboard</a>
+        <a href="#" onclick="switchPage(1)" class="nav-link hover:text-amber-400 flex items-center gap-2"><i class="fa-solid fa-video"></i> Live Feed</a>
+        <a href="#" onclick="switchPage(2)" class="nav-link hover:text-amber-400 flex items-center gap-2"><i class="fa-solid fa-list-check"></i> Violations</a>
+        <a href="#" onclick="switchPage(3)" class="nav-link hover:text-amber-400 flex items-center gap-2"><i class="fa-solid fa-cog"></i> Admin</a>
+      </div>
+
+      <div class="flex items-center gap-3">
+        <div class="bg-green-500/20 text-green-400 px-4 py-1.5 rounded-full flex items-center gap-2 text-sm">
+          <div class="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+          LIVE SYSTEM
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <div class="max-w-7xl mx-auto px-8 py-10">
+
+    <!-- DASHBOARD -->
+    <div id="page-0" class="page">
+      <h1 class="text-4xl font-bold text-gray-800 mb-2">Violation Detection Dashboard</h1>
+      <p class="text-gray-600 mb-10">AI-Powered Smart No-Parking Enforcement System</p>
+
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-12" id="stats">
+        <!-- Stats filled by JS -->
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div class="bg-white p-8 rounded-3xl shadow">
+          <h2 class="font-semibold mb-6">Recent Violations</h2>
+          <div id="recent-violations" class="space-y-5"></div>
+        </div>
+        <div class="bg-white p-8 rounded-3xl shadow">
+          <h2 class="font-semibold mb-6">Live Camera Feed</h2>
+          <canvas id="live-canvas" width="700" height="280" class="bg-black w-full"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- LIVE FEED -->
+    <div id="page-1" class="page hidden">
+      <h1 class="text-4xl font-bold mb-8">Live AI Surveillance</h1>
+      <div class="bg-white rounded-3xl shadow p-8">
+        <div class="flex justify-between mb-6">
+          <div class="flex items-center gap-4">
+            <i class="fa-solid fa-video text-red-500 text-2xl"></i>
+            <div>
+              <div class="font-semibold">CAM-03 • MG Road</div>
+              <div class="text-sm text-gray-500">Real-time YOLO Detection</div>
+            </div>
+          </div>
+          <button onclick="startLiveDetection()" id="detect-btn"
+                  class="bg-blue-600 text-white px-8 py-3 rounded-2xl font-semibold hover:bg-blue-700">
+            Start Detection
+          </button>
+        </div>
+        <canvas id="detection-canvas" width="900" height="380" class="bg-black rounded-2xl w-full"></canvas>
+      </div>
+    </div>
+
+    <!-- VIOLATIONS -->
+    <div id="page-2" class="page hidden">
+      <h1 class="text-4xl font-bold mb-6">All Violations</h1>
+      <div class="bg-white rounded-3xl shadow overflow-hidden">
+        <table class="w-full" id="violation-table">
+          <thead class="bg-[#0B2545] text-white">
+            <tr>
+              <th class="py-5 px-6 text-left">ID</th>
+              <th class="py-5 px-6 text-left">Vehicle Number</th>
+              <th class="py-5 px-6 text-left">Violation</th>
+              <th class="py-5 px-6 text-left">Fine</th>
+              <th class="py-5 px-6 text-left">Time</th>
+              <th class="py-5 px-6 text-left">Status</th>
+            </tr>
+          </thead>
+          <tbody id="table-body" class="text-sm"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ADMIN -->
+    <div id="page-3" class="page hidden">
+      <h1 class="text-4xl font-bold mb-8">Admin Panel</h1>
+      <div class="bg-white p-10 rounded-3xl shadow text-center">
+        <p class="text-xl mb-6">System Status: <span class="text-green-600 font-semibold">Online</span></p>
+        <button onclick="clearAllData()" class="bg-red-600 text-white px-10 py-4 rounded-2xl text-lg">
+          Clear All Records (Demo)
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let violations = [];
+    let nextId = 1;
+
+    function generatePlate() {
+      const letters = "ABCDEFGHJKLMNPQRSTUVWXYZ";
+      return `MH${Math.floor(Math.random()*90)+10}${letters[Math.floor(Math.random()*letters.length)]}${letters[Math.floor(Math.random()*letters.length)]}${Math.floor(Math.random()*9000)+1000}`;
+    }
+
+    function seedData() {
+      violations = [];
+      for (let i = 0; i < 10; i++) {
+        violations.push({
+          id: nextId++,
+          plate: generatePlate(),
+          type: ["No Parking", "Double Parking", "Footpath Parking"][Math.floor(Math.random()*3)],
+          fine: [500, 1000, 1500][Math.floor(Math.random()*3)],
+          time: new Date(Date.now() - Math.random()*86400000*2).toLocaleString('en-IN'),
+          status: Math.random() > 0.5 ? "Issued" : "Pending"
+        });
+      }
+    }
+
+    function renderStats() {
+      const html = `
+        <div class="bg-white p-6 rounded-3xl shadow card">
+          <p class="text-gray-500">Total Violations</p>
+          <p class="text-5xl font-bold text-gray-800">${violations.length}</p>
+        </div>
+        <div class="bg-white p-6 rounded-3xl shadow card">
+          <p class="text-gray-500">Challans Issued</p>
+          <p class="text-5xl font-bold text-green-600">${violations.filter(v => v.status === "Issued").length}</p>
+        </div>
+        <div class="bg-white p-6 rounded-3xl shadow card">
+          <p class="text-gray-500">Pending</p>
+          <p class="text-5xl font-bold text-orange-600">${violations.filter(v => v.status === "Pending").length}</p>
+        </div>
+        <div class="bg-white p-6 rounded-3xl shadow card">
+          <p class="text-gray-500">Revenue</p>
+          <p class="text-5xl font-bold text-blue-600">₹${violations.reduce((a,v) => a + v.fine, 0)}</p>
+        </div>
+      `;
+      document.getElementById('stats').innerHTML = html;
+    }
+
+    function renderRecent() {
+      let html = '';
+      violations.slice(0, 5).forEach(v => {
+        html += `
+          <div class="flex justify-between items-center border-b pb-4">
+            <div>
+              <div class="font-mono font-bold">${v.plate}</div>
+              <div class="text-sm text-gray-600">${v.type}</div>
+            </div>
+            <div class="text-right">
+              <div class="font-semibold text-red-600">₹${v.fine}</div>
+              <div class="text-xs ${v.status === 'Issued' ? 'text-green-600' : 'text-orange-500'}">${v.status}</div>
+            </div>
+          </div>`;
+      });
+      document.getElementById('recent-violations').innerHTML = html;
+    }
+
+    function renderTable() {
+      let html = '';
+      violations.forEach(v => {
+        html += `
+          <tr class="border-b hover:bg-gray-50">
+            <td class="px-6 py-5">${v.id}</td>
+            <td class="px-6 py-5 font-mono">${v.plate}</td>
+            <td class="px-6 py-5">${v.type}</td>
+            <td class="px-6 py-5 font-semibold text-red-600">₹${v.fine}</td>
+            <td class="px-6 py-5 text-sm">${v.time}</td>
+            <td class="px-6 py-5">
+              <span class="px-4 py-1 text-xs rounded-full ${v.status === 'Issued' ? 'bg-green-100 text-green-700' : 'bg-orange-100 text-orange-700'}">
+                ${v.status}
+              </span>
+            </td>
+          </tr>`;
+      });
+      document.getElementById('table-body').innerHTML = html;
+    }
+
+    function startLiveDetection() {
+      alert("🎥 AI Detection Started!\n\nVehicle detected: " + generatePlate() + "\nViolation: No Parking Zone\nFine: ₹1000");
+      const newV = {
+        id: nextId++,
+        plate: generatePlate(),
+        type: "No Parking",
+        fine: 1000,
+        time: new Date().toLocaleString('en-IN'),
+        status: "Pending"
+      };
+      violations.unshift(newV);
+      renderStats();
+      renderRecent();
+      renderTable();
+    }
+
+    function clearAllData() {
+      if (confirm("Clear all violation records?")) {
+        violations = [];
+        nextId = 1;
+        renderStats();
+        renderRecent();
+        renderTable();
+        alert("All records cleared.");
+      }
+    }
+
+    function switchPage(n) {
+      document.querySelectorAll('.page').forEach(p => p.classList.add('hidden'));
+      document.getElementById('page-' + n).classList.remove('hidden');
+      
+      document.querySelectorAll('.nav-link').forEach(link => link.classList.remove('nav-active'));
+    }
+
+    // Initialize
+    window.onload = function() {
+      seedData();
+      renderStats();
+      renderRecent();
+      renderTable();
+      switchPage(0);
+      
+      // Simple live canvas animation
+      const canvas = document.getElementById('live-canvas');
+      if (canvas) {
+        const ctx = canvas.getContext('2d');
+        let x = 0;
+        setInterval(() => {
+          ctx.fillStyle = '#111';
+          ctx.fillRect(0, 0, canvas.width, canvas.height);
+          ctx.fillStyle = '#4ade80';
+          ctx.fillRect(x, 100, 80, 40);
+          x += 3;
+          if (x > canvas.width) x = -100;
+        }, 30);
+      }
+    };
+  </script>
+</body>
+</html>
